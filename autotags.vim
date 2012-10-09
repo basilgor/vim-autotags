@@ -73,7 +73,7 @@ fun! s:AutotagsInit()
     endif
 
     if !exists("g:autotags_global")
-        let g:autotags_global = $HOME . "/.autotags/tags"
+        let g:autotags_global = $HOME . "/.autotags/global_tags"
     endif
 
     if !filereadable(g:autotags_global)

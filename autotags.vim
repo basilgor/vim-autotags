@@ -129,7 +129,7 @@ fun! s:AutotagsInit()
             let s:origin = s:path . "/origin"
             if getftype(s:origin) == 'link' && !isdirectory(s:origin)
                 echomsg "deleting stale tags for " .
-                    \ substitute(system("readlink '" . s:origin . "'"), "\n.*", "", "")
+                    \ fnamemodify(resolve(s:origin), ":p")
                 call system("rm -r '" . s:path . "'")
             endif
         endif
@@ -143,7 +143,7 @@ fun! s:AutotagsInit()
             "echomsg "autotags subdir exist: " . s:autotags_subdir
             break
         endif
-        let s:dir = substitute(system("dirname '" . s:dir . "'"), "\n.*", "", "")
+        let s:dir = fnamemodify(s:dir, ":p:h:h")
     endwhile
 
     " search ctags in current tree
@@ -221,7 +221,7 @@ fun! s:AutotagsUpdate()
     endif
 
     if !exists("s:sourcedir")
-        let s:sourcedir = substitute(system("readlink '" . s:autotags_subdir . "/origin'"), "\n.*", "", "")
+        let s:sourcedir = fnamemodify(resolve(s:autotags_subdir . "/origin"), ":p")
     endif
 
     if !exists("s:ctagsfile")
@@ -253,7 +253,7 @@ endfun
 fun! s:AutotagsRemove()
     if exists("s:autotags_subdir")
         echomsg "deleting autotags " . s:autotags_subdir . " for " .
-            \ substitute(system("readlink '" . s:autotags_subdir . "/origin'"), "\n.*", "", "")
+            \ fnamemodify(resolve(s:autotags_subdir . "/origin"), ":p")
         call system("rm -r '" . s:autotags_subdir . "'")
         exe "set tags=" . g:autotags_global
         exe "cs kill -1"

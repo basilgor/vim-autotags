@@ -10,7 +10,7 @@
 "
 "
 "   Script builds and loads ctags and cscope databases via a single command.
-"   All ctags and cscope files are stored in separate directory ~/autotags by
+"   All ctags and cscope files are stored in separate directory ~/.autotags by
 "   default. You can set it via
 "       let g:autotagsdir = $HOME."/boo"
 "
@@ -19,15 +19,15 @@
 "   tree are opened.
 "
 "   Exact tags location:
-"   ~/autotags/byhash/<source dir name hash>/<ctags and cscope files>
+"   ~/.autotags/byhash/<source dir name hash>/<ctags and cscope files>
 "
 "   Also `origin` symlink points back to source dir
-"   ~/autotags/byhash/<source dir name hash>/origin
+"   ~/.autotags/byhash/<source dir name hash>/origin
 "
 "   Tags for non-existing source directories are removed automatically
 "   (checked at startup)
 "
-"   Also ctags file ~/autotags/ctags is built for /usr/include once
+"   Also ctags file ~/.autotags/ctags is built for /usr/include once
 "
 " Dependencies:
 "   ctags and cscope
@@ -69,11 +69,11 @@ endfun
 " find and load tags, delete stale tags
 fun! s:AutotagsInit()
     if !exists("g:autotagsdir")
-        let g:autotagsdir = $HOME . "/autotags/byhash"
+        let g:autotagsdir = $HOME . "/.autotags/byhash"
     endif
 
     if !exists("g:autotags_global")
-        let g:autotags_global = $HOME . "/autotags/tags"
+        let g:autotags_global = $HOME . "/.autotags/tags"
     endif
 
     if !filereadable(g:autotags_global)

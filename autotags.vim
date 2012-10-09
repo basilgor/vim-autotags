@@ -1,7 +1,7 @@
 " vim: set sw=4 sts=4 et ft=vim :
 " Script:           autotags.vim
 " Author:           Basil Gor <basil.gor at gmail.com>
-" Homepage:         http://github.com/basilgor/autotags
+" Homepage:         http://github.com/basilgor/vim-autotags
 " Version:          0.3 (10 Oct 2012)
 " License:          Redistribute under the same terms as Vim itself
 " Purpose:          ctags and cscope tags handling

@@ -13,7 +13,7 @@
 "
 "   To build and load additional tags for another directory (i.e. external
 "   project or library code you want to navigate to) press F3 (or map
-"   AutotagsAddPath).
+"   AutotagsAdd).
 "
 "   Script builds and loads ctags and cscope databases via a single command.
 "   All ctags and cscope files are stored in separate directory ~/.autotags by
@@ -49,9 +49,21 @@
 "   let g:autotags_cscope_file_extensions = ".cpp .cc .cxx .m .hpp .hh .h .hxx .c .idl"
 "
 " Public Interface:
-"   AutotagsUpdate()    build/rebuild tags (mapped to F4 by default)
-"   AutotagsAddPath()   build and load additional tags for another directory
-"   AutotagsRemove()    remove currently used tags
+"   AutotagsUpdate()            build/rebuild tags (mapped to F4 by default)
+"   AutotagsAdd()               build and load additional tags for another directory
+"   AutotagsRemove()            remove currently used tags
+"
+"   AutotagsUpdatePath(path)    build/rebuild tags (mapped to F4 by default)
+"   AutotagsAddPath(path)       build and load additional tags for another directory
+"
+"   Last two calls can be used to generate tags from batch mode, i.e.:
+"   $ vim -E -v >/dev/null 2>&1 <<EOF
+"   :call AutotagsUpdatePath("/you/project/source")
+"   :call AutotagsAddPath("/external/library/source")
+"   :call AutotagsAddPath("/external/library2/source")
+"   :call AutotagsAddPath("/external/library3/source")
+"   :quit
+"   EOF
 "
 " Dependencies:
 "   ctags and cscope
@@ -76,8 +88,8 @@ if !hasmapto('AutotagsUpdate')
     map <F4> :call AutotagsUpdate()<CR>
 endif
 
-if !hasmapto('AutotagsAddPath')
-    map <F3> :call AutotagsAddPath()<CR>
+if !hasmapto('AutotagsAdd')
+    map <F3> :call AutotagsAdd()<CR>
 endif
 
 fun! s:PathHash(val)
@@ -147,6 +159,10 @@ endfun
 
 " remove stale tags for non-existing source directories
 fun! s:AutotagsCleanup()
+    if !isdirectory(g:autotagsdir)
+        return
+    endif
+
     for l:entry in split(system("ls " . g:autotagsdir), "\n")
         let l:path = g:autotagsdir . "/" . l:entry
         if getftype(l:path) == "dir"
@@ -160,24 +176,35 @@ fun! s:AutotagsCleanup()
     endfor
 endfun
 
+fun! s:AutotagsValidatePath(path)
+    if a:path == ""
+        echomsg "no directory specified"
+        return ""
+    endif
+
+    let l:fullpath = fnamemodify(a:path, ":p")
+
+    if !isdirectory(l:fullpath)
+        echomsg "directory " . l:fullpath . " doesn't exist"
+        return ""
+    endif
+
+    let l:fullpath = substitute(l:fullpath, "\/$", "", "")
+    return l:fullpath
+endfun
+
 fun! s:AutotagsAskPath(hint, msg)
     call inputsave()
     let l:path = input(a:msg, a:hint, "file")
     call inputrestore()
     echomsg " "
 
-    if !isdirectory(l:path)
-        echomsg "directory " . l:path . " doesn't exist"
-        return ""
-    endif
-
-    let l:path = substitute(l:path, "\/$", "", "")
-    return l:path
+    return s:AutotagsValidatePath(l:path)
 endfun
 
 fun! s:AutotagsMakeTagsDir(sourcedir)
     let l:tagsdir = g:autotagsdir . '/' . s:PathHash(a:sourcedir)
-    if !mkdir(l:tagsdir, "p")
+    if !isdirectory(l:tagsdir) && !mkdir(l:tagsdir, "p")
         echomsg "cannot create dir " . l:tagsdir
         return ""
     endif
@@ -208,6 +235,7 @@ fun! s:AutotagsGenerate(sourcedir, tagsdir)
 endfun
 
 fun! s:AutotagsReload(tagsdir)
+    set nocsverb
     exe "cs kill -1"
     exe "set tags=" . g:autotags_global
 
@@ -235,47 +263,76 @@ fun! s:AutotagsLoad(tagsdir)
     endif
 endfun
 
-fun! AutotagsUpdate()
+fun! s:AutotagsIsLoaded()
     if !exists("s:autotags_subdir") ||
        \ !isdirectory(s:autotags_subdir) ||
        \ !isdirectory(s:autotags_subdir . '/origin')
+        return 0
+    else
+        return 1
+    endif
+endfun
 
-        let s:sourcedir = s:AutotagsAskPath(getcwd(), "Select project root: ")
-        if s:sourcedir == ""
-            unlet s:sourcedir
+fun! AutotagsUpdate()
+    if s:AutotagsIsLoaded() == 0
+        let l:sourcedir = s:AutotagsAskPath(getcwd(), "Select project root: ")
+        if l:sourcedir == ""
+            return
+        endif
+    else
+        let l:sourcedir = resolve(s:autotags_subdir . "/origin")
+    endif
+
+    call AutotagsUpdatePath(l:sourcedir)
+endfun
+
+fun! AutotagsUpdatePath(sourcedir)
+    if s:AutotagsIsLoaded() == 0
+        let l:sourcedir = s:AutotagsValidatePath(a:sourcedir)
+        if l:sourcedir == ""
             return
         endif
 
-        let s:autotags_subdir = s:AutotagsMakeTagsDir(s:sourcedir)
+        let s:autotags_subdir = s:AutotagsMakeTagsDir(l:sourcedir)
         if s:autotags_subdir == ""
             unlet s:autotags_subdir
             return
         endif
-    endif
-
-    if !exists("s:sourcedir")
-        let s:sourcedir = fnamemodify(resolve(s:autotags_subdir . "/origin"), ":p")
+    else
+        let l:sourcedir = resolve(s:autotags_subdir . "/origin")
     endif
 
     if !filereadable(g:autotags_global)
         call s:AutotagsGenerateGlobal()
     endif
-    call s:AutotagsGenerate(s:sourcedir, s:autotags_subdir)
+    call s:AutotagsGenerate(l:sourcedir, s:autotags_subdir)
     call s:AutotagsReload(s:autotags_subdir)
-    echomsg "tags updated"
 endfun
 
 " Add dependent source directory, tags for that directory will be loaded to
 " current project
-fun! AutotagsAddPath()
-    if !exists("s:autotags_subdir") ||
-       \ !isdirectory(s:autotags_subdir) ||
-       \ !isdirectory(s:autotags_subdir . '/origin')
+fun! AutotagsAdd()
+    if s:AutotagsIsLoaded() == 0
         call s:AutotagsUpdate()
     endif
 
     let l:sourcedir = s:AutotagsAskPath(getcwd(), "Select additional directory: ")
     if l:sourcedir == ""
+        return
+    endif
+
+    call AutotagsAddPath(l:sourcedir)
+endfun
+
+fun! AutotagsAddPath(sourcedir)
+    if s:AutotagsIsLoaded() == 0
+        echomsg "call AutotagsUpdate first"
+        return
+    endif
+
+    let l:sourcedir = s:AutotagsValidatePath(a:sourcedir)
+    if l:sourcedir == "" ||
+       \ l:sourcedir == resolve(s:autotags_subdir . "/origin")
         return
     endif
 
@@ -285,7 +342,7 @@ fun! AutotagsAddPath()
     endif
 
     call s:AutotagsGenerate(l:sourcedir, l:tagsdir)
-    call s:AutotagsLoad(l:tagsdir)
+    call s:AutotagsReload(s:autotags_subdir)
 
     call system("ln -s '" . l:tagsdir . "' '" . s:autotags_subdir .
         \ "/include_" . s:PathHash(l:sourcedir) . "'")

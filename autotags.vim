@@ -161,6 +161,24 @@ fun! s:AutotagsInit()
 
     if exists("s:autotags_subdir")
         call s:AutotagsReload(s:autotags_subdir)
+    else
+        call s:AutotagsSearchLoadTags()
+    endif
+endfun
+
+fun! s:AutotagsSearchLoadTags()
+    " search ctags in current tree
+    if filereadable(findfile("tags", ".;"))
+        let l:ctagsfile = findfile("tags", ".;")
+        exe "set tags+=" . l:ctagsfile
+        echomsg "found local ctags file: " . l:ctagsfile
+    endif
+
+    " search cscope db in current tree
+    if filereadable(findfile("cscope.out", ".;"))
+        let l:cscopedb = findfile("cscope.out", ".;")
+        exe "cs add " . l:cscopedb
+        echomsg "found local cscopedb file: " . l:cscopedb
     endif
 endfun
 

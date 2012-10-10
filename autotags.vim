@@ -42,6 +42,9 @@
 "
 "   let g:autotagsdir = $HOME . "/.autotags/byhash"
 "   let g:autotags_global = $HOME . "/.autotags/global_tags"
+"
+"   set to 1 to avoid generating global tags for /usr/include
+"   let g:autotags_no_global = 0
 "   let g:autotags_ctags_exe = "ctags"
 "   let g:autotags_ctags_opts = "--c++-kinds=+p --fields=+iaS --extra=+q"
 "   let g:autotags_ctags_global_include = "/usr/include/*"
@@ -106,7 +109,11 @@ fun! s:AutotagsInit()
         let g:autotags_global = $HOME . "/.autotags/global_tags"
     endif
 
-    if filereadable(g:autotags_global)
+    if !exists("g:autotags_no_global")
+        let g:autotags_no_global = 0
+    endif
+
+    if g:autotags_no_global == 0 && filereadable(g:autotags_global)
         exe "set tags=" . g:autotags_global
     endif
 
@@ -237,7 +244,11 @@ endfun
 fun! s:AutotagsReload(tagsdir)
     set nocsverb
     exe "cs kill -1"
-    exe "set tags=" . g:autotags_global
+    if g:autotags_no_global == 0 && filereadable(g:autotags_global)
+        exe "set tags=" . g:autotags_global
+    else
+        exe "set tags="
+    endif
 
     call s:AutotagsLoad(a:tagsdir)
 
@@ -302,7 +313,7 @@ fun! AutotagsUpdatePath(sourcedir)
         let l:sourcedir = resolve(s:autotags_subdir . "/origin")
     endif
 
-    if !filereadable(g:autotags_global)
+    if g:autotags_no_global == 0 && !filereadable(g:autotags_global)
         call s:AutotagsGenerateGlobal()
     endif
     call s:AutotagsGenerate(l:sourcedir, s:autotags_subdir)
@@ -353,7 +364,11 @@ fun! AutotagsRemove()
         echomsg "deleting autotags " . s:autotags_subdir . " for " .
             \ fnamemodify(resolve(s:autotags_subdir . "/origin"), ":p")
         call system("rm -r '" . s:autotags_subdir . "'")
-        exe "set tags=" . g:autotags_global
+        if g:autotags_no_global == 0 && filereadable(g:autotags_global)
+            exe "set tags=" . g:autotags_global
+        else
+            exe "set tags="
+        endif
         exe "cs kill -1"
         exe "cs reset"
     endif

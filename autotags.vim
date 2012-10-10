@@ -302,6 +302,8 @@ fun! AutotagsRemove()
     endif
 endfun
 
+set nocsverb
 call <SID>AutotagsInit()
+
 let &cpo= s:keepcpo
 unlet s:keepcpo

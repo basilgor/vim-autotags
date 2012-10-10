@@ -353,10 +353,10 @@ fun! AutotagsAddPath(sourcedir)
     endif
 
     call s:AutotagsGenerate(l:sourcedir, l:tagsdir)
-    call s:AutotagsReload(s:autotags_subdir)
 
     call system("ln -s '" . l:tagsdir . "' '" . s:autotags_subdir .
         \ "/include_" . s:PathHash(l:sourcedir) . "'")
+    call s:AutotagsReload(s:autotags_subdir)
 endfun
 
 fun! AutotagsRemove()

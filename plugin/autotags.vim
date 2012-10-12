@@ -296,6 +296,7 @@ fun! s:AutotagsGenerate(sourcedir, tagsdir)
 endfun
 
 fun! s:AutotagsReload(tagsdir)
+    let $CSCOPE_DIR=a:tagsdir
     set nocsverb
     exe "cs kill -1"
     if g:autotags_no_global == 0 && filereadable(g:autotags_global)

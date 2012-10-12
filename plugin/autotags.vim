@@ -233,7 +233,7 @@ fun! s:AutotagsCleanup()
             if getftype(l:origin) == 'link' && !isdirectory(l:origin)
                 echomsg "deleting stale tags for " .
                     \ fnamemodify(resolve(l:origin), ":p")
-                call system("rm -r '" . l:path . "'")
+                call system("rm -r " . shellescape(l:path))
             endif
         endif
     endfor
@@ -272,7 +272,7 @@ fun! s:AutotagsMakeTagsDir(sourcedir)
         return ""
     endif
 
-    call system("ln -s '" . a:sourcedir . "' '" . l:tagsdir . "/origin'")
+    call system("ln -s " . shellescape(a:sourcedir) . " " . shellescape(l:tagsdir . "/origin"))
     return l:tagsdir
 endfun
 
@@ -280,25 +280,25 @@ fun! s:AutotagsGenerateGlobal()
     echomsg "updating global ctags " . g:autotags_global . " for " .
         \ g:autotags_ctags_global_include
     echomsg system("nice -15 " . g:autotags_ctags_exe . " " .
-        \ g:autotags_ctags_opts . " -f '" . g:autotags_global . "' " .
+        \ g:autotags_ctags_opts . " -f " . shellescape(g:autotags_global) . " " .
         \ g:autotags_ctags_global_include)
 endfun
 
 fun! s:AutotagsGenerate(sourcedir, tagsdir)
     let l:ctagsfile = a:tagsdir . "/tags"
-    echomsg "updating ctags " . l:ctagsfile ." for " . a:sourcedir
+    echomsg "updating ctags " . shellescape(l:ctagsfile) ." for " . shellescape(a:sourcedir)
     echomsg system("nice -15 " . g:autotags_ctags_exe . " -R " .
         \ g:autotags_ctags_opts .
         \ " '--languages=" . g:autotags_ctags_languages .
         \ "' '--langmap=" . g:autotags_ctags_langmap .
-        \ "' -f '" . l:ctagsfile . "' '" . a:sourcedir ."'")
+        \ "' -f " . shellescape(l:ctagsfile) . " " . shellescape(a:sourcedir))
 
     let l:cscopedir = a:tagsdir
-    echomsg "updating cscopedb in " . l:cscopedir ." for " . a:sourcedir
-    echomsg system("cd '" . l:cscopedir . "' && nice -15 find '" . a:sourcedir . "' " .
-        \ "-not -regex '.*\\.git.*' -regex '" . s:cscope_file_pattern . "' -fprint cscope.files")
+    echomsg "updating cscopedb in " . shellescape(l:cscopedir) ." for " . shellescape(a:sourcedir)
+    echomsg system("cd " . shellescape(l:cscopedir) . " && nice -15 find " . shellescape(a:sourcedir) .
+        \ " -not -regex '.*\\.git.*' -regex '" . s:cscope_file_pattern . "' -fprint cscope.files")
     if getfsize(l:cscopedir . "/cscope.files") > 0
-        echomsg system("cd '" . l:cscopedir . "' && nice -15 " . g:autotags_cscope_exe . " -b -q")
+        echomsg system("cd " . shellescape(l:cscopedir) . " && nice -15 " . g:autotags_cscope_exe . " -b -q")
     endif
 endfun
 
@@ -419,8 +419,8 @@ fun! AutotagsAddPath(sourcedir)
 
     call s:AutotagsGenerate(l:sourcedir, l:tagsdir)
 
-    call system("ln -s '" . l:tagsdir . "' '" . s:autotags_subdir .
-        \ "/include_" . s:PathHash(l:sourcedir) . "'")
+    call system("ln -s " . shellescape(l:tagsdir) . " " .
+        \ shellescape(s:autotags_subdir . "/include_" . s:PathHash(l:sourcedir)))
     call s:AutotagsReload(s:autotags_subdir)
 endfun
 
@@ -428,7 +428,7 @@ fun! AutotagsRemove()
     if exists("s:autotags_subdir")
         echomsg "deleting autotags " . s:autotags_subdir . " for " .
             \ fnamemodify(resolve(s:autotags_subdir . "/origin"), ":p")
-        call system("rm -r '" . s:autotags_subdir . "'")
+        call system("rm -r " . shellescape(s:autotags_subdir))
         if g:autotags_no_global == 0 && filereadable(g:autotags_global)
             exe "set tags=" . g:autotags_global
         else

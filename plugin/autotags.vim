@@ -69,6 +69,9 @@
 "   let g:autotags_cscope_exe = "cscope"
 "   let g:autotags_cscope_file_extensions = ".cpp .cc .cxx .m .hpp .hh .h .hxx .c .idl"
 "
+"   set to 1 to export $CSCOPE_DIR during initialization and tags build
+"   let g:autotags_export_cscope_dir = 0
+"
 " Public Interface:
 "   AutotagsUpdate()            build/rebuild tags (mapped to F4 by default)
 "   AutotagsAdd()               build and load additional tags for another directory
@@ -167,6 +170,10 @@ fun! s:AutotagsInit()
     endif
 
     let s:cscope_file_pattern = '.*\' . join(split(g:autotags_cscope_file_extensions, " "), '\|.*\')
+
+    if !exists("g:autotags_export_cscope_dir")
+        let g:autotags_export_cscope_dir = 0
+    endif
 
     call s:AutotagsCleanup()
 
@@ -296,7 +303,10 @@ fun! s:AutotagsGenerate(sourcedir, tagsdir)
 endfun
 
 fun! s:AutotagsReload(tagsdir)
-    let $CSCOPE_DIR=a:tagsdir
+    if g:autotags_export_cscope_dir == 1
+        let $CSCOPE_DIR=a:tagsdir
+    endif
+
     set nocsverb
     exe "cs kill -1"
     if g:autotags_no_global == 0 && filereadable(g:autotags_global)

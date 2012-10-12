@@ -169,7 +169,8 @@ fun! s:AutotagsInit()
         let g:autotags_cscope_file_extensions = ".cpp .cc .cxx .m .hpp .hh .h .hxx .c .idl"
     endif
 
-    let s:cscope_file_pattern = '.*\' . join(split(g:autotags_cscope_file_extensions, " "), '\|.*\')
+    let s:cscope_file_pattern = '.*\' .
+        \ join(split(g:autotags_cscope_file_extensions, " "), '\|.*\')
 
     if !exists("g:autotags_export_cscope_dir")
         let g:autotags_export_cscope_dir = 0
@@ -272,7 +273,8 @@ fun! s:AutotagsMakeTagsDir(sourcedir)
         return ""
     endif
 
-    call system("ln -s " . shellescape(a:sourcedir) . " " . shellescape(l:tagsdir . "/origin"))
+    call system("ln -s " . shellescape(a:sourcedir) . " " .
+        \ shellescape(l:tagsdir . "/origin"))
     return l:tagsdir
 endfun
 
@@ -280,25 +282,33 @@ fun! s:AutotagsGenerateGlobal()
     echomsg "updating global ctags " . g:autotags_global . " for " .
         \ g:autotags_ctags_global_include
     echomsg system("nice -15 " . g:autotags_ctags_exe . " " .
-        \ g:autotags_ctags_opts . " -f " . shellescape(g:autotags_global) . " " .
+        \ g:autotags_ctags_opts .
+        \ " -f " . shellescape(g:autotags_global) . " " .
         \ g:autotags_ctags_global_include)
 endfun
 
 fun! s:AutotagsGenerate(sourcedir, tagsdir)
     let l:ctagsfile = a:tagsdir . "/tags"
-    echomsg "updating ctags " . shellescape(l:ctagsfile) ." for " . shellescape(a:sourcedir)
+    echomsg "updating ctags " . shellescape(l:ctagsfile) ." for " .
+        \ shellescape(a:sourcedir)
     echomsg system("nice -15 " . g:autotags_ctags_exe . " -R " .
         \ g:autotags_ctags_opts .
         \ " '--languages=" . g:autotags_ctags_languages .
         \ "' '--langmap=" . g:autotags_ctags_langmap .
-        \ "' -f " . shellescape(l:ctagsfile) . " " . shellescape(a:sourcedir))
+        \ "' -f " . shellescape(l:ctagsfile) . " " .
+        \ shellescape(a:sourcedir))
 
     let l:cscopedir = a:tagsdir
-    echomsg "updating cscopedb in " . shellescape(l:cscopedir) ." for " . shellescape(a:sourcedir)
-    echomsg system("cd " . shellescape(l:cscopedir) . " && nice -15 find " . shellescape(a:sourcedir) .
-        \ " -not -regex '.*\\.git.*' -regex '" . s:cscope_file_pattern . "' -fprint cscope.files")
+    echomsg "updating cscopedb in " . shellescape(l:cscopedir) ." for " .
+        \ shellescape(a:sourcedir)
+    echomsg system("cd " . shellescape(l:cscopedir) . " && " .
+        \ " nice -15 find " . shellescape(a:sourcedir) .
+        \ " -not -regex '.*\\.git.*' " .
+        \ " -regex '" . s:cscope_file_pattern . "' " .
+        \ " -fprint cscope.files")
     if getfsize(l:cscopedir . "/cscope.files") > 0
-        echomsg system("cd " . shellescape(l:cscopedir) . " && nice -15 " . g:autotags_cscope_exe . " -b -q")
+        echomsg system("cd " . shellescape(l:cscopedir) . " && " .
+            \ "nice -15 " . g:autotags_cscope_exe . " -b -q")
     endif
 endfun
 

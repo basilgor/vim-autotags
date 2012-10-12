@@ -9,6 +9,15 @@
 "   This script is a wrapper for ctags and cscope, so tags for all languages
 "   supported by ctags can be build (cscope is additionally used for C/C++).
 "
+"   Features
+"   1. No configuration needed
+"   2. Build/rebuild index for project with a single key stroke
+"   3. Tags are loaded then automatically when a file is opened anywhere in
+"   project tree
+"   4. Tags are stored in a separate directory and don't clog you project tree
+"   5. Extra directories (like library source or includes) can be added with a
+"   single key stroke too
+"
 "   Put autotags.vim in your ~/.vim/plugin directory, open source code and
 "   press F4 (map AutotagsUpdate to change it).
 "
@@ -65,8 +74,9 @@
 "   AutotagsAdd()               build and load additional tags for another directory
 "   AutotagsRemove()            remove currently used tags
 "
-"   AutotagsUpdatePath(path)    build/rebuild tags (mapped to F4 by default)
-"   AutotagsAddPath(path)       build and load additional tags for another directory
+"   AutotagsUpdatePath(path)    build/rebuild tags (no user interaction)
+"   AutotagsAddPath(path)       build and load additional tags for another
+"                               directory (no user interaction)
 "
 "   Last two calls can be used to generate tags from batch mode, i.e.:
 "   $ vim -E -v >/dev/null 2>&1 <<EOF

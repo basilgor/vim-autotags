@@ -54,6 +54,10 @@
 "
 "   let g:autotagsdir = $HOME . "/.autotags/byhash"
 "   let g:autotags_global = $HOME . "/.autotags/global_tags"
+"
+"   Set to 1 to get paths with metachars replaced by . as path hashes
+"   Default is 0, md5sum hash is used
+"   let g:autotags_pathhash_humanreadable = 0
 "   let g:autotags_ctags_exe = "ctags"
 "   let g:autotags_ctags_opts = "--c++-kinds=+p --fields=+iaS --extra=+q"
 "
@@ -114,13 +118,22 @@ if !hasmapto('AutotagsAdd')
 endif
 
 fun! s:PathHash(val)
-    return substitute(system("sha1sum", a:val), " .*", "", "")
+    if g:autotags_pathhash_humanreadable == 0
+        return substitute(system("sha1sum", a:val), " .*", "", "")
+    else
+        return substitute(strpart(a:val, 1),
+            \ '/\|\s\|\[\|\]\|;\|<\|>\|\\\|\*\|`\|&\||\|\$\|#\|!\|(\|)\|{\|}\|:\|"\|'."'", ".", "g")
+    endif
 endfun
 
 " find and load tags, delete stale tags
 fun! s:AutotagsInit()
     if !exists("g:autotagsdir")
         let g:autotagsdir = $HOME . "/.autotags/byhash"
+    endif
+
+    if !exists("g:autotags_pathhash_humanreadable")
+        let g:autotags_pathhash_humanreadable = 0
     endif
 
     if !exists("g:autotags_global")

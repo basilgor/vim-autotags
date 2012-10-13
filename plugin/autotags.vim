@@ -189,6 +189,16 @@ fun! s:AutotagsInit()
         let g:autotags_export_cscope_dir = 0
     endif
 
+    if executable(g:autotags_ctags_exe) == 0
+        echomsg "autotags warning: `" . g:autotags_ctags_exe .
+            \ "' cannot be found on your system"
+    endif
+
+    if executable(g:autotags_cscope_exe) == 0
+        echomsg "autotags warning: `" . g:autotags_cscope_exe .
+            \ "' cannot be found on your system"
+    endif
+
     call s:AutotagsCleanup()
 
     " find autotags subdir

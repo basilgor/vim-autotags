@@ -422,7 +422,7 @@ endfun
 " current project
 fun! AutotagsAdd()
     if s:AutotagsIsLoaded() == 0
-        call s:AutotagsUpdate()
+        call AutotagsUpdate()
     endif
 
     let l:sourcedir = s:AutotagsAskPath(getcwd(), "Select additional directory: ")

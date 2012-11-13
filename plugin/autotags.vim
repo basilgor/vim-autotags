@@ -179,7 +179,7 @@ fun! s:AutotagsInit()
     endif
 
     if !exists("g:autotags_cscope_file_extensions")
-        let g:autotags_cscope_file_extensions = ".cpp .cc .cxx .m .hpp .hh .h .hxx .c .idl"
+        let g:autotags_cscope_file_extensions = ".cpp .cc .cxx .m .hpp .hh .h .hxx .c .idl .java"
     endif
 
     let s:cscope_file_pattern = '.*\' .

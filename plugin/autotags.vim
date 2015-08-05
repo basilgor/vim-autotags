@@ -8,6 +8,8 @@
 " Documentation:
 "   This script is a wrapper for ctags and cscope, so tags for all languages
 "   supported by ctags can be build (cscope is additionally used for C/C++).
+"   To generate Go language tags gotags is required:
+"   https://github.com/jstemmer/gotags
 "
 "   Features
 "   1. No configuration needed
@@ -60,6 +62,8 @@
 "   let g:autotags_pathhash_humanreadable = 0
 "   let g:autotags_ctags_exe = "ctags"
 "   let g:autotags_ctags_opts = "--c++-kinds=+p --fields=+iaS --extra=+q"
+"   let g:autotags_gotags_exe = "gotags"
+"   let g:autotags_gotags_opts = ""
 "
 "   see `man ctags` "--languages" options
 "   let g:autotags_ctags_languages = "all"
@@ -156,6 +160,14 @@ fun! s:AutotagsInit()
         let g:autotags_ctags_exe = "ctags"
     endif
 
+    if !exists("g:autotags_gotags_exe")
+        let g:autotags_gotags_exe = "gotags"
+    endif
+
+    if !exists("g:autotags_gotags_opts")
+        let g:autotags_gotags_opts = ""
+    endif
+
     if !exists("g:autotags_ctags_opts")
         let g:autotags_ctags_opts = "--c++-kinds=+p --fields=+iaS --extra=+q"
     endif
@@ -222,6 +234,14 @@ endfun
 
 fun! s:AutotagsIsC()
     if &ft == "cpp" || &ft == "c"
+        return 1
+    else
+        return 0
+    endif
+endfun
+
+fun! s:AutotagsIsGo()
+    if &ft == "go"
         return 1
     else
         return 0
@@ -310,7 +330,7 @@ fun! s:AutotagsGenerateGlobal()
         \ g:autotags_ctags_global_include)
 endfun
 
-fun! s:AutotagsGenerate(sourcedir, tagsdir)
+fun! s:AutotagsGenerateC(sourcedir, tagsdir)
     let l:ctagsfile = a:tagsdir . "/tags"
     echomsg "updating ctags " . shellescape(l:ctagsfile) ." for " .
         \ shellescape(a:sourcedir)
@@ -332,6 +352,24 @@ fun! s:AutotagsGenerate(sourcedir, tagsdir)
     if getfsize(l:cscopedir . "/cscope.files") > 0
         echomsg system("cd " . shellescape(l:cscopedir) . " && " .
             \ "nice -15 " . g:autotags_cscope_exe . " -b -q")
+    endif
+endfun
+
+fun! s:AutotagsGenerateGo(sourcedir, tagsdir)
+    let l:ctagsfile = a:tagsdir . "/tags"
+    echomsg "updating ctags (gotags) " . shellescape(l:ctagsfile) ." for " .
+        \ shellescape(a:sourcedir)
+    echomsg system("nice -15 " . g:autotags_gotags_exe . " -R " .
+        \ g:autotags_gotags_opts .
+        \ " -f " . shellescape(l:ctagsfile) . " " .
+        \ shellescape(a:sourcedir))
+endfun
+
+fun! s:AutotagsGenerate(sourcedir, tagsdir)
+    if s:AutotagsIsGo() == 1
+        call s:AutotagsGenerateGo(a:sourcedir, a:tagsdir)
+    else
+        call s:AutotagsGenerateC(a:sourcedir, a:tagsdir)
     endif
 endfun
 

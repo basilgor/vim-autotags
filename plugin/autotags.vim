@@ -348,7 +348,7 @@ fun! s:AutotagsGenerateC(sourcedir, tagsdir)
         \ " nice -15 find " . shellescape(a:sourcedir) .
         \ " -not -regex '.*\\.git.*' " .
         \ " -regex '" . s:cscope_file_pattern . "' " .
-        \ " -fprint cscope.files")
+        \ " -print > cscope.files")
     if getfsize(l:cscopedir . "/cscope.files") > 0
         echomsg system("cd " . shellescape(l:cscopedir) . " && " .
             \ "nice -15 " . g:autotags_cscope_exe . " -b -q")
